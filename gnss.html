@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Accuracy GNSS</title>
+    <style>
+        /* Add your CSS styling here */
+    </style>
+</head>
+<body>
+    <button onclick="getCurrentPosition()">Get High-Accuracy Position</button>
+    <div id="positionInfo">
+        <p>Latitude: <span id="latitude"></span></p>
+        <p>Longitude: <span id="longitude"></span></p>
+        <p>Accuracy: <span id="accuracy"></span> meters</p>
+        <p>Elevation: <span id="elevation"></span> meters</p>
+        <p>Timestamp: <span id="timestamp"></span></p>
+        <p>Altitude: <span id="altitude"></span> meters</p>
+        <p>Altitude Accuracy: <span id="altitudeAccuracy"></span> meters</p>
+        <p>Heading: <span id="heading"></span></p>
+        <p>Speed: <span id="speed"></span> m/s</p>
+    </div>
+
+    <script>
+        function getCurrentPosition() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    positionSuccess,
+                    positionError,
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function positionSuccess(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            const altitude = position.coords.altitude;
+            const altitudeAccuracy = position.coords.altitudeAccuracy;
+            const heading = position.coords.heading;
+            const speed = position.coords.speed;
+            const timestamp = position.timestamp;
+
+            document.getElementById('latitude').textContent = lat.toFixed(5);
+            document.getElementById('longitude').textContent = lng.toFixed(5);
+            document.getElementById('accuracy').textContent = accuracy ? accuracy.toFixed(2) : 'N/A';
+            document.getElementById('altitude').textContent = altitude ? altitude.toFixed(2) : 'N/A';
+            document.getElementById('altitudeAccuracy').textContent = altitudeAccuracy ? altitudeAccuracy.toFixed(2) : 'N/A';
+            document.getElementById('heading').textContent = heading !== null ? heading.toFixed(2) : 'N/A';
+            document.getElementById('speed').textContent = speed !== null ? speed.toFixed(2) : 'N/A';
+            document.getElementById('timestamp').textContent = new Date(timestamp).toLocaleString();
+
+            fetchElevation(lat, lng);
+
+            console.log("Position obtained:");
+            console.log(`Latitude: ${lat}`);
+            console.log(`Longitude: ${lng}`);
+            console.log(`Accuracy: ${accuracy} meters`);
+            console.log(`Altitude: ${altitude}`);
+            console.log(`Altitude Accuracy: ${altitudeAccuracy}`);
+            console.log(`Heading: ${heading}`);
+            console.log(`Speed: ${speed}`);
+            console.log(`Timestamp: ${new Date(timestamp).toLocaleString()}`);
+        }
+
+        function positionError(error) {
+            console.error("Error obtaining position: ", error);
+            alert("Error obtaining position. Please try again.");
+        }
+
+        function fetchElevation(lat, lng) {
+            fetch(`https://maps.googleapis.com/maps/api/elevation/json?locations=${lat},${lng}&key=YOUR_GOOGLE_API_KEY_HERE`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'OK' && data.results.length > 0) {
+                        const elevation = data.results[0].elevation;
+                        document.getElementById('elevation').textContent = elevation.toFixed(2);
+                    } else {
+                        console.error('Error fetching elevation:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching elevation:', error);
+                });
+        }
+    </script>
+</body>
+</html>
